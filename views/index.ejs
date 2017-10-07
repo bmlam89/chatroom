@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!--<link href="/css/style.css" rel="stylesheet">-->
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script type ="text/javascript" src="/socket.io/socket.io.js"></script>
+        <script type ="text/javascript">
+            $(document).ready(function (){
+                // this triggers the connection event in our server!
+                var socket  = io.connect();
+                // we'll write all the socket stuff after the above line!
+                var name = prompt("Your Name:");
+                socket.emit('get_chat_history',{name:name});
+                
+                
+                $('#msg').submit(function(e){
+                    e.preventDefault();
+                    console.log($(this.txt).val());
+
+                    socket.emit('submitted_msg',{name:name,msg:$(this.txt).val()});
+                    
+                });
+
+                
+                socket.on('posted_message',function(response){
+                    var html_str = "<p style='margin-left:5px;'>"+response.name+": "+response.msg+"</p>";
+                    $('#placeholder').append(html_str);
+                });
+                
+                
+                socket.on('post_chat_history',function(response){
+                    console.log(response.chat_history.length);
+                    for(i in response.chat_history)
+                    {
+                        console.log(response.chat_history[i].name,response.chat_history[i].msg);
+                        var html_str = "<p style='margin-left:5px;'>"+response.chat_history[i].name+": "+response.chat_history[i].msg+"</p>";
+                        $('#placeholder').append(html_str);
+                    }
+                });   
+            })
+    </script>
+    </head>
+    <body>
+        <div class="container" id="wrapper">
+            <h5 style="border-bottom:solid thin black; width:130px;">Conversation Board</h5>
+            <div id='chat_div' style='height:600px; width:600px; border:solid black thin; overflow-y:auto;'>
+                <div id='placeholder'></div>
+            </div>
+            <form id='msg' action="/" method='post'>
+                <input type='text' placeholder="enter your message here" id='txt' style="width:600px; height:30px; margin-top:15px;"><br>
+                <div class='text-right' style="width:600px;">
+                    <input type='submit' class='btn-primary' style='margin-top:15px; border-radius:10px;' value="send">
+                </div>
+            </form>
+        </div>
+    </body>
+</html>
